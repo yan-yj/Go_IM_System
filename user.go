@@ -71,7 +71,7 @@ func (this *User) DoMessage(msg string) {
 		}
 		this.server.mapLock.Unlock()
 		
-	} else if len(msg) > 7 && msg[:7] == "rename|" {
+	} else if len(msg) > 7 && msg[:7] == "rename|" { 
 		// 消息格式rename|XX
 		newName := strings.Split(msg, "|")[1]
 		
