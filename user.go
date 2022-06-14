@@ -2,6 +2,7 @@ package main
 
 import (
 	"net"
+	"strings"
 )
 
 type User struct {
@@ -37,6 +38,10 @@ func (this *User) Online() {
 
 	// 广播当前用户上线消息
 	this.server.Broadcast(this, "上线啦!")
+
+	// 发送提示性信息
+	info := "1.查询当前在线用户请输入:who\n2.修改用户名请输入:rename|XX(如 rename|张三)\n"
+	this.SendMsg(info)
 }
 
 // 用户下线业务
@@ -65,6 +70,24 @@ func (this *User) DoMessage(msg string) {
 			this.SendMsg(onlineMsg)
 		}
 		this.server.mapLock.Unlock()
+		
+	} else if len(msg) > 7 && msg[:7] == "rename|" {
+		// 消息格式rename|XX
+		newName := strings.Split(msg, "|")[1]
+		
+		// 判断用户名是否已经存在
+		_, ok := this.server.OnlineMap[newName]
+		if ok {
+			this.SendMsg("当前用户名已被使用")
+		} else {
+			this.server.mapLock.Lock()
+			delete(this.server.OnlineMap, this.Name)
+			this.server.OnlineMap[newName] = this
+			this.server.mapLock.Unlock()
+
+			this.Name = newName
+			this.SendMsg("您已经成功更新用户名为:" + this.Name +"\n")
+		}
 		
 	} else {
 		this.server.Broadcast(this, msg)
