@@ -40,7 +40,7 @@ func (this *User) Online() {
 	this.server.Broadcast(this, "上线啦!")
 
 	// 发送提示性信息
-	info := "1.查询当前在线用户请输入:who\n2.修改用户名请输入:rename|XX(如 rename|张三)\n"
+	info := "1.查询当前在线用户请输入:who\n2.修改用户名请输入:rename|newName(如 rename|张三)\n3.私聊格式:to|张三|内容\n"
 	this.SendMsg(info)
 }
 
@@ -89,6 +89,29 @@ func (this *User) DoMessage(msg string) {
 			this.SendMsg("您已经成功更新用户名为:" + this.Name +"\n")
 		}
 		
+	} else if len(msg) > 4 && msg[:3] == "to|"{
+		// 消息格式："to|张三|内容"
+		// 1 从msg中获取私聊对象用户名
+		remoteName := strings.Split(msg, "|")[1]
+		if remoteName == "" {
+			this.SendMsg("消息格式有误，请使用“to|张三|内容”发送消息\n")
+			return
+		}
+		// 2 根据用户名获取对方User对象
+		remoteUser, ok := this.server.OnlineMap[remoteName]
+		if !ok {
+			this.SendMsg("你输入的用户不存在，请确认无误后再发\n")
+			return
+		}
+
+		// 3 通过User对象将消息发送过去
+		content := strings.Split(msg, "|")[2]
+		if content == "" {
+			this.SendMsg("消息内容为空，请确认无误后重发")
+			return
+		}
+		remoteUser.SendMsg(this.Name + "对您说：" + content + "\n")
+
 	} else {
 		this.server.Broadcast(this, msg)
 	}
