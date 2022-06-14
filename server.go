@@ -56,14 +56,9 @@ func (this *Server) Broadcast(user *User, msg string) {
 func (this *Server) handler(conn net.Conn) {
 	fmt.Println("Create the conn successflly!")
 
-	user := NewUser(conn)
-	// 用户上线，将用户添加到OnlineMap
-	this.mapLock.Lock()
-	this.OnlineMap[user.Name] = user
-	this.mapLock.Unlock()
-
-	// 广播当前用户上线消息
-	this.Broadcast(user, "上线啦!")
+	user := NewUser(conn, this)
+	
+	user.Online()
 
 	// receive infomation from user
 	go func() {
@@ -71,7 +66,7 @@ func (this *Server) handler(conn net.Conn) {
 		for {
 			n, err := conn.Read(buf)
 			if n == 0 {
-				this.Broadcast(user, "回家睡觉啦!")
+				user.Offline()
 				return
 			}
 			if err != nil && err != io.EOF {
@@ -82,8 +77,7 @@ func (this *Server) handler(conn net.Conn) {
 			// get user's info without "\n"
 			msg := string(buf[:n-1])
 
-			// broadcast info
-			this.Broadcast(user, msg)
+			user.DoMessage(msg)
 		}
 	}()
 
