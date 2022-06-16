@@ -40,7 +40,7 @@ func (this *User) Online() {
 	this.server.Broadcast(this, "上线啦!")
 
 	// 发送提示性信息
-	info := "1.查询当前在线用户请输入:who\n2.修改用户名请输入:rename|newName(如 rename|张三)\n3.私聊格式:to|张三|内容\n"
+	info := "您已成功登录！\n"
 	this.SendMsg(info)
 }
 
